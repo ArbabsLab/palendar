@@ -23,7 +23,6 @@ const UserCard = ({ user, setUsers }) => {
   const textColor = useColorModeValue("gray.700", "gray.300");
 
   const bg = useColorModeValue("#ffffff", "#2d3748"); // white / deep blue-gray
-	//const textColor = useColorModeValue("#2c5282", "#edf2f7"); // rich blue / soft white
 
   const handleDeleteUser = async (e) => {
     e.stopPropagation();
