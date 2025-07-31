@@ -5,7 +5,8 @@ class User(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   username = db.Column(db.String(80), unique=True, nullable=False)
   password_hash = db.Column(db.String(128), nullable=False)
-
+  friends = db.relationship('Friend', backref='user', lazy=True)
+  
   def set_password(self, password):
     self.password_hash = generate_password_hash(password).decode('utf-8')
 
@@ -27,6 +28,7 @@ class Friend(db.Model):
   description = db.Column(db.Text, nullable=False)
   gender = db.Column(db.String(10), nullable=False)
   img_url = db.Column(db.String(200), nullable=True)
+  user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
   def to_json(self):
     return {
@@ -36,4 +38,5 @@ class Friend(db.Model):
         "description":self.description,
         "gender":self.gender,
         "imgUrl":self.img_url,
+        "userId": self.user_id
       }
