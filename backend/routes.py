@@ -1,70 +1,119 @@
 from app import app, db
 from flask import request, jsonify
-from models import Friend
-import jwt
-from functools import wraps
+from models import Friend, User
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, get_jwt
+from flask_bcrypt import generate_password_hash, check_password_hash
 
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-        if 'Authorization' in request.headers:
-            bearer = request.headers['Authorization']
-            token = bearer.split()[1] if ' ' in bearer else bearer
-        if not token:
-            return jsonify({'message': 'Token is missing!'}), 401
-        try:
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
-            current_user_id = data['user_id']
-        except Exception as e:
-            return jsonify({'message': 'Token is invalid!', 'error': str(e)}), 401
-        return f(current_user_id, *args, **kwargs)
-    return decorated
+@app.route("/api/v1/signup", methods=["POST"])
+def signup():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+
+    if not username or not password:
+        return jsonify({"error": "Username and password required"}), 400
+
+    if User.query.filter_by(username=username).first():
+        return jsonify({"error": "Username already exists"}), 409
+
+    new_user = User(username=username)
+    new_user.password = password
+
+    new_user.name = data.get("name", "")
+    new_user.role = data.get("role", "")
+    new_user.description = data.get("description", "")
+    new_user.gender = data.get("gender", "")
+    new_user.img_url = data.get("img_url", "")
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({"message": "User created successfully"}), 201
+
+@app.route('/api/v1/login', methods=["POST"])
+def login():
+    data = request.get_json()
+    username = data['username']
+    password = data['password']
+
+    user = User.query.filter_by(username=username).first()
+    if user and user.check_password(password):
+        access_token = create_access_token(identity=user.id)
+        return jsonify({'message': 'Login Success', 'access_token': access_token})
+    else:
+        return jsonify({'message': 'Login Failed'}), 401
+
+@app.route('/api/v1/user', methods=['GET'])
+@jwt_required()
+def userInfo():
+    user_id = get_jwt_identity()
+    user = User.query.filter_by(id=user_id).first()
+
+    if user:
+        return jsonify({'message': 'User found', 'name': user.name})
+    else:
+        return jsonify({'message': 'User not found'}), 404
+
 
 #Get all friends
 @app.route("/api/v1/friends", methods=["GET"])
-@token_required
-def all_friends(current_user_id):
-    friends = Friend.query.filter_by(user_id=current_user_id).all()
-    data = [friend.to_json() for friend in friends]
-    return jsonify(data)
+@jwt_required()
+def all_friends():
+    user_id = get_jwt_identity()
+    sent = Friend.query.filter_by(user_id1=user_id).all()
+    received = Friend.query.filter_by(user_id2=user_id).all()
+
+    friend_ids = {f.user_id2 for f in sent} | {f.user_id1 for f in received}
+    friend_users = User.query.filter(User.id.in_(friend_ids)).all()
+
+    return jsonify([user.to_json() for user in friend_users]), 200
 
 #Add a friend
 @app.route("/api/v1/friends", methods=["POST"])
-@token_required
-def create_friend(current_user_id):
+@jwt_required()
+def create_friend():
     try:
-        data = request.json
-        required_fields = ["name","role","description","gender"]
-        for field in required_fields:
-            if field not in data or not data.get(field):
-                return jsonify({"error":f'Missing required field: {field}'}), 400
-        name = data.get("name")
-        role = data.get("role")
-        description = data.get("description")
-        gender = data.get("gender")
-        if gender == "male":
-            img_url = f"https://avatar.iran.liara.run/public/boy"
-        elif gender == "female":
-            img_url = f"https://avatar.iran.liara.run/public/girl"
-        else:
-            img_url = None
-        new_friend = Friend(name=name, role=role, description=description, gender=gender, img_url=img_url, user_id=current_user_id)
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        friend_id = data.get("friend_id")
+
+        if not friend_id:
+            return jsonify({"error": "Missing 'friend_id'"}), 400
+
+        if friend_id == user_id:
+            return jsonify({"error": "You cannot add yourself as a friend"}), 400
+
+        # Check if already friends (in either direction)
+        exists = Friend.query.filter(
+            ((Friend.user_id1 == user_id) & (Friend.user_id2 == friend_id)) |
+            ((Friend.user_id1 == friend_id) & (Friend.user_id2 == user_id))
+        ).first()
+
+        if exists:
+            return jsonify({"error": "Already friends"}), 400
+
+        new_friend = Friend(user_id1=user_id, user_id2=friend_id)
         db.session.add(new_friend)
         db.session.commit()
-        return jsonify({"message":"Friend added successfully"}), 201
+        return jsonify({"message": "Friend added successfully"}), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
 #Delete a friend
 @app.route("/api/v1/friends/<int:id>", methods=["DELETE"])
-@token_required
-def delete_friend(current_user_id, id):
+@jwt_required()
+def delete_friend(id):
     try:
-        friend = Friend.query.filter_by(id=id, user_id=current_user_id).first()
-        if friend is None:
+        user_id = get_jwt_identity()
+        friend = Friend.query.filter(
+            ((Friend.user_id1 == user_id) & (Friend.user_id2 == id)) |
+            ((Friend.user_id1 == id) & (Friend.user_id2 == user_id))
+        ).first()
+
+        if not friend:
             return jsonify({"error": "Friend does not exist"}), 404
+
         db.session.delete(friend)
         db.session.commit()
         return jsonify({"message": "Friend removed successfully"}), 200
@@ -72,24 +121,3 @@ def delete_friend(current_user_id, id):
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
-#Update friend info
-@app.route("/api/v1/friends/<int:id>", methods=["PATCH"])
-@token_required
-def update_friend(current_user_id, id):
-    try:
-        friend = Friend.query.filter_by(id=id, user_id=current_user_id).first()
-        if friend is None:
-            return jsonify({"error": "User does not exist"}), 404
-        
-        updated_data = request.json
-        friend.name = updated_data.get("name", friend.name)
-        friend.role = updated_data.get("role", friend.role)
-        friend.description = updated_data.get("description", friend.description)
-        friend.gender = updated_data.get("gender", friend.gender)
-        db.session.commit()
-
-        return jsonify(friend.to_json()), 200
-    
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500

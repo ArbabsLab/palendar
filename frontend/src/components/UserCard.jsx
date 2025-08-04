@@ -17,21 +17,37 @@ import { BASE_URL } from "../App";
 
 const UserCard = ({ user, setUsers }) => {
   const toast = useToast();
-
-  // const bg = useColorModeValue("white", "gray.800");
   const hoverBg = useColorModeValue("gray.50", "gray.700");
   const textColor = useColorModeValue("gray.700", "gray.300");
-
-  const bg = useColorModeValue("#ffffff", "#2d3748"); // white / deep blue-gray
+  const bg = useColorModeValue("#ffffff", "#2d3748");
 
   const handleDeleteUser = async (e) => {
     e.stopPropagation();
-    try {
-      const res = await fetch(BASE_URL + "/friends/" + user.id, {
-        method: "DELETE",
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      toast({
+        title: "Unauthorized",
+        description: "You must be logged in to delete a contact.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+        position: "top-center",
       });
+      return;
+    }
+
+    try {
+      const res = await fetch(`${BASE_URL}/friends/${user.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+
       setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
       toast({
         status: "success",
@@ -53,56 +69,56 @@ const UserCard = ({ user, setUsers }) => {
   };
 
   return (
-	<Box role="group">
-    <Card
-      bg={bg}
-      cursor="pointer"
-      transition="all 0.2s ease-in-out"
-      _hover={{
-		transform: "scale(1.05) translateY(-5px)",
-        shadow: "md",
-        bg: hoverBg,
-      }}
-    >
-      <CardHeader>
-        <Flex gap={4} align="center" justify="space-between">
-          <Flex flex="1" gap="4" align="center">
-            <Avatar src={user.imgUrl} />
-            <Box>
-              <Heading size="sm">{user.name}</Heading>
-              <Text color="gray.500" fontSize="sm">
-                {user.role}
-              </Text>
-            </Box>
-          </Flex>
+    <Box role="group">
+      <Card
+        bg={bg}
+        cursor="pointer"
+        transition="all 0.2s ease-in-out"
+        _hover={{
+          transform: "scale(1.05) translateY(-5px)",
+          shadow: "md",
+          bg: hoverBg,
+        }}
+      >
+        <CardHeader>
+          <Flex gap={4} align="center" justify="space-between">
+            <Flex flex="1" gap="4" align="center">
+              <Avatar src={user.imgUrl} />
+              <Box>
+                <Heading size="sm">{user.name}</Heading>
+                <Text color="gray.500" fontSize="sm">
+                  {user.role}
+                </Text>
+              </Box>
+            </Flex>
 
-          <Flex onClick={(e) => e.stopPropagation()} gap={1}>
-            <EditModal user={user} setUsers={setUsers} />
-            <IconButton
-              variant="ghost"
-              colorScheme="red"
-              size="sm"
-              aria-label="Delete contact"
-              icon={<BiTrash size={20} />}
-              onClick={handleDeleteUser}
-            />
+            <Flex onClick={(e) => e.stopPropagation()} gap={1}>
+              <EditModal user={user} setUsers={setUsers} />
+              <IconButton
+                variant="ghost"
+                colorScheme="red"
+                size="sm"
+                aria-label="Delete contact"
+                icon={<BiTrash size={20} />}
+                onClick={handleDeleteUser}
+              />
+            </Flex>
           </Flex>
-        </Flex>
-      </CardHeader>
+        </CardHeader>
 
-      <CardBody pt={0}>
-        <Text
-          fontSize="sm"
-          color={textColor}
-          transition="opacity 0.2s ease-in-out"
-          opacity={0}
-          _groupHover={{ opacity: 1 }}
-        >
-          {user.description}
-        </Text>
-      </CardBody>
-    </Card>
-	</Box>
+        <CardBody pt={0}>
+          <Text
+            fontSize="sm"
+            color={textColor}
+            transition="opacity 0.2s ease-in-out"
+            opacity={0}
+            _groupHover={{ opacity: 1 }}
+          >
+            {user.description}
+          </Text>
+        </CardBody>
+      </Card>
+    </Box>
   );
 };
 

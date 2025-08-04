@@ -33,42 +33,45 @@ const CreateUserModal = ({ setUsers }) => {
 	const toast = useToast();
 
 	const handleCreateUser = async (e) => {
-		e.preventDefault(); 
+		e.preventDefault();
 		setIsLoading(true);
+
+		const token = localStorage.getItem("access_token"); // ✅ Retrieve token
+
 		try {
-			const res = await fetch(BASE_URL + "/friends", {
+			const res = await fetch(`${BASE_URL}/friends`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`, // ✅ Send token
 				},
 				body: JSON.stringify(inputs),
 			});
 
 			const data = await res.json();
-			if (!res.ok) {
-				throw new Error(data.error);
-			}
+			if (!res.ok) throw new Error(data.error || "Something went wrong");
 
 			toast({
 				status: "success",
 				title: "Contact Added",
 				description: "Contact created successfully.",
 				duration: 2000,
-				position: "top-center",
+				position: "top",
 			});
+
 			onClose();
-			setUsers((prevUsers) => [...prevUsers, data]);
+			setUsers((prev) => [...prev, data]);
 
 			setInputs({
 				name: "",
 				role: "",
 				description: "",
 				gender: "",
-			}); 
+			});
 		} catch (error) {
 			toast({
 				status: "error",
-				title: "An error occurred.",
+				title: "Error",
 				description: error.message,
 				duration: 4000,
 			});
@@ -92,7 +95,6 @@ const CreateUserModal = ({ setUsers }) => {
 
 						<ModalBody pb={6}>
 							<Flex alignItems={"center"} gap={4}>
-								{/* Left */}
 								<FormControl>
 									<FormLabel>Full Name</FormLabel>
 									<Input
@@ -102,7 +104,6 @@ const CreateUserModal = ({ setUsers }) => {
 									/>
 								</FormControl>
 
-								{/* Right */}
 								<FormControl>
 									<FormLabel>Role</FormLabel>
 									<Input
@@ -116,30 +117,25 @@ const CreateUserModal = ({ setUsers }) => {
 							<FormControl mt={4}>
 								<FormLabel>Description</FormLabel>
 								<Textarea
-									resize={"none"}
-									overflowY={"hidden"}
+									resize='none'
 									placeholder="He's a soccer player who loves to score goals."
 									value={inputs.description}
 									onChange={(e) => setInputs({ ...inputs, description: e.target.value })}
 								/>
 							</FormControl>
 
-							<RadioGroup mt={4}>
-								<Flex gap={5}>
-									<Radio
-										value='male'
-										onChange={(e) => setInputs({ ...inputs, gender: e.target.value })}
-									>
-										Male
-									</Radio>
-									<Radio
-										value='female'
-										onChange={(e) => setInputs({ ...inputs, gender: e.target.value })}
-									>
-										Female
-									</Radio>
-								</Flex>
-							</RadioGroup>
+							<FormControl mt={4}>
+								<FormLabel>Gender</FormLabel>
+								<RadioGroup
+									value={inputs.gender}
+									onChange={(val) => setInputs({ ...inputs, gender: val })}
+								>
+									<Flex gap={5}>
+										<Radio value='male'>Male</Radio>
+										<Radio value='female'>Female</Radio>
+									</Flex>
+								</RadioGroup>
+							</FormControl>
 						</ModalBody>
 
 						<ModalFooter>
@@ -154,4 +150,5 @@ const CreateUserModal = ({ setUsers }) => {
 		</>
 	);
 };
+
 export default CreateUserModal;

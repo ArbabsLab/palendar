@@ -6,7 +6,7 @@ import { useState } from "react";
 export const BASE_URL =
 	import.meta.env.MODE === "development"
 		? "http://127.0.0.1:5000/api/v1"
-		: "/api";
+		: "/api/v1";
 
 function App() {
 	const [users, setUsers] = useState([]);
