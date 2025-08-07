@@ -11,41 +11,42 @@ import {
 	ModalFooter,
 	ModalHeader,
 	ModalOverlay,
-	Radio,
-	RadioGroup,
-	Textarea,
 	useDisclosure,
 	useToast,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { BiAddToQueue } from "react-icons/bi";
+import { BiUserPlus } from "react-icons/bi";
 import { BASE_URL } from "../App";
 
-const CreateUserModal = ({ setUsers }) => {
+const AddFriendModal = ({ setUsers }) => {
 	const { isOpen, onOpen, onClose } = useDisclosure();
+	const [friendId, setFriendId] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
-	const [inputs, setInputs] = useState({
-		name: "",
-		role: "",
-		description: "",
-		gender: "",
-	});
 	const toast = useToast();
 
-	const handleCreateUser = async (e) => {
+	const handleAddFriend = async (e) => {
 		e.preventDefault();
 		setIsLoading(true);
 
-		const token = localStorage.getItem("access_token"); // ✅ Retrieve token
+		const token = localStorage.getItem("access_token");
+		if (!token) {
+			toast({
+				status: "error",
+				title: "No token found",
+				description: "Please login again.",
+			});
+			setIsLoading(false);
+			return;
+		}
 
 		try {
 			const res = await fetch(`${BASE_URL}/friends`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`, // ✅ Send token
+					Authorization: `Bearer ${token}`,
 				},
-				body: JSON.stringify(inputs),
+				body: JSON.stringify({ friend_id: parseInt(friendId) }),
 			});
 
 			const data = await res.json();
@@ -53,21 +54,18 @@ const CreateUserModal = ({ setUsers }) => {
 
 			toast({
 				status: "success",
-				title: "Contact Added",
-				description: "Contact created successfully.",
+				title: "Friend Added",
+				description: data.message || "Friend added successfully.",
 				duration: 2000,
 				position: "top",
 			});
 
 			onClose();
-			setUsers((prev) => [...prev, data]);
+			setFriendId("");
 
-			setInputs({
-				name: "",
-				role: "",
-				description: "",
-				gender: "",
-			});
+			
+			setUsers((prev) => [...prev]); 
+
 		} catch (error) {
 			toast({
 				status: "error",
@@ -82,64 +80,32 @@ const CreateUserModal = ({ setUsers }) => {
 
 	return (
 		<>
-			<Button onClick={onOpen}>
-				<BiAddToQueue size={20} />
+			<Button onClick={onOpen} leftIcon={<BiUserPlus />}>
+				Add Friend
 			</Button>
 
 			<Modal isOpen={isOpen} onClose={onClose}>
 				<ModalOverlay />
-				<form onSubmit={handleCreateUser}>
+				<form onSubmit={handleAddFriend}>
 					<ModalContent>
-						<ModalHeader>Contact Info</ModalHeader>
+						<ModalHeader>Add a Friend</ModalHeader>
 						<ModalCloseButton />
 
 						<ModalBody pb={6}>
-							<Flex alignItems={"center"} gap={4}>
-								<FormControl>
-									<FormLabel>Full Name</FormLabel>
-									<Input
-										placeholder='Lionel Messi'
-										value={inputs.name}
-										onChange={(e) => setInputs({ ...inputs, name: e.target.value })}
-									/>
-								</FormControl>
-
-								<FormControl>
-									<FormLabel>Role</FormLabel>
-									<Input
-										placeholder='Soccer Player'
-										value={inputs.role}
-										onChange={(e) => setInputs({ ...inputs, role: e.target.value })}
-									/>
-								</FormControl>
-							</Flex>
-
-							<FormControl mt={4}>
-								<FormLabel>Description</FormLabel>
-								<Textarea
-									resize='none'
-									placeholder="He's a soccer player who loves to score goals."
-									value={inputs.description}
-									onChange={(e) => setInputs({ ...inputs, description: e.target.value })}
+							<FormControl>
+								<FormLabel>Friend ID</FormLabel>
+								<Input
+									placeholder="Enter Friend's User ID"
+									type="number"
+									value={friendId}
+									onChange={(e) => setFriendId(e.target.value)}
+									required
 								/>
-							</FormControl>
-
-							<FormControl mt={4}>
-								<FormLabel>Gender</FormLabel>
-								<RadioGroup
-									value={inputs.gender}
-									onChange={(val) => setInputs({ ...inputs, gender: val })}
-								>
-									<Flex gap={5}>
-										<Radio value='male'>Male</Radio>
-										<Radio value='female'>Female</Radio>
-									</Flex>
-								</RadioGroup>
 							</FormControl>
 						</ModalBody>
 
 						<ModalFooter>
-							<Button colorScheme='blue' mr={3} type='submit' isLoading={isLoading}>
+							<Button colorScheme="blue" mr={3} type="submit" isLoading={isLoading}>
 								Add
 							</Button>
 							<Button onClick={onClose}>Cancel</Button>
@@ -151,4 +117,4 @@ const CreateUserModal = ({ setUsers }) => {
 	);
 };
 
-export default CreateUserModal;
+export default AddFriendModal;

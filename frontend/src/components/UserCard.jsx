@@ -12,7 +12,6 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { BiTrash } from "react-icons/bi";
-import EditModal from "./EditModal";
 import { BASE_URL } from "../App";
 
 const UserCard = ({ user, setUsers }) => {
@@ -23,7 +22,7 @@ const UserCard = ({ user, setUsers }) => {
 
   const handleDeleteUser = async (e) => {
     e.stopPropagation();
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
 
     if (!token) {
       toast({
@@ -93,7 +92,6 @@ const UserCard = ({ user, setUsers }) => {
             </Flex>
 
             <Flex onClick={(e) => e.stopPropagation()} gap={1}>
-              <EditModal user={user} setUsers={setUsers} />
               <IconButton
                 variant="ghost"
                 colorScheme="red"

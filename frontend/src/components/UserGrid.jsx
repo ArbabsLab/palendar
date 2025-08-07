@@ -7,27 +7,37 @@ const UserGrid = ({ users, setUsers }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [expandedUserId, setExpandedUserId] = useState(null);
 
+
+
   useEffect(() => {
     const getUsers = async () => {
-      setIsLoading(true);
-      try {
-        const token = localStorage.getItem("access_token");
-        const res = await fetch(BASE_URL + "/friends", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await res.json();
-
-        if (!res.ok) throw new Error(data.error || "Failed to fetch contacts");
-        setUsers(data);
-      } catch (error) {
-        console.error(error);
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token || typeof token !== "string") {
+        console.error("No access token found.");
         setUsers([]);
-      } finally {
-        setIsLoading(false);
+        return;
       }
-    };
+
+      const res = await fetch(BASE_URL + "/friends", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Failed to fetch contacts");
+      setUsers(data);
+    } catch (error) {
+      console.error(error);
+      setUsers([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
     getUsers();
   }, [setUsers]);
 

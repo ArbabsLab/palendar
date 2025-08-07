@@ -12,7 +12,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///palendar.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
-app.config["JWT_TOKEN_LOCATION"] = os.getenv("JWT_TOKEN_LOCATION")
+app.config["JWT_TOKEN_LOCATION"] = [os.getenv("JWT_TOKEN_LOCATION")]
 
 db = SQLAlchemy(app)
 

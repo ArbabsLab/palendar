@@ -40,58 +40,13 @@ const Navbar = ({ setUsers }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
+  
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     setIsLoggedIn(!!token);
 	console.log(isLoggedIn)
   }, []);
 
-  const handleLogin = async () => {
-    if (!username || !password) {
-      toast({
-        title: "Please enter username and password",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    try {
-      const res = await fetch(`${BASE_URL}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || "Login failed");
-
-      localStorage.setItem("token", data.token);
-      setIsLoggedIn(true);
-      onClose();
-      toast({
-        title: "Logged in successfully",
-        status: "success",
-        duration: 2000,
-        isClosable: true,
-      });
-
-      if (setUsers) {
-        fetchFriends(data.token);
-      }
-    } catch (error) {
-      toast({
-        title: "Login error",
-        description: error.message,
-        status: "error",
-        duration: 4000,
-        isClosable: true,
-      });
-    }
-  };
 
   const fetchFriends = async (token) => {
     try {
