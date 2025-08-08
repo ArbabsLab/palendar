@@ -59,9 +59,11 @@ class Friend(db.Model):
     user_id1 = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user_id2 = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
+    status = db.Column(db.String, nullable=False, default="pending")
     def to_json(self):
         return {
             "id": self.id,
             "userId1": self.user_id1,
             "userId2": self.user_id2,
+            "status": self.status
         }

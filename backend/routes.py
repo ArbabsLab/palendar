@@ -62,8 +62,8 @@ def userInfo():
 def all_friends():
     try:
         user_id = int(get_jwt_identity())
-        sent = Friend.query.filter_by(user_id1=user_id).all()
-        received = Friend.query.filter_by(user_id2=user_id).all()
+        sent = Friend.query.filter_by(user_id1=user_id, status="accepted").all()
+        received = Friend.query.filter_by(user_id2=user_id, status="accepted").all()
 
         friend_ids = {f.user_id2 for f in sent} | {f.user_id1 for f in received}
         friend_users = User.query.filter(User.id.in_(friend_ids)).all()
@@ -131,3 +131,67 @@ def delete_friend(id):
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/v1/friend-request/<int:receiver_id>", methods=["POST"])
+@jwt_required()
+def send_friend_request(receiver_id):
+    sender_id = int(get_jwt_identity())
+
+    if sender_id == receiver_id:
+        return jsonify({"error": "You can't send a request to yourself"}), 400
+
+    existing_request = Friend.query.filter(
+        ((Friend.user_id1 == sender_id) & (Friend.user_id2 == receiver_id)) |
+        ((Friend.user_id1 == receiver_id) & (Friend.user_id2 == sender_id))
+    ).first()
+
+    if existing_request:
+        return jsonify({"error": "Friend request or friendship already exists"}), 400
+
+    friend_request = Friend(user_id1=sender_id, user_id2=receiver_id, status="pending")
+    db.session.add(friend_request)
+    db.session.commit()
+    return jsonify({"message": "Friend request sent"}), 201
+
+@app.route("/api/v1/friend-request/<int:request_id>/accept", methods=["PUT"])
+@jwt_required()
+def accept_friend_request(request_id):
+    user_id = int(get_jwt_identity())
+    friend_request = Friend.query.filter_by(id=request_id, user_id2=user_id, status="pending").first()
+
+    if not friend_request:
+        return jsonify({"error": "Friend request not found"}), 404
+
+    friend_request.status = "accepted"
+    db.session.commit()
+    return jsonify({"message": "Friend request accepted"}), 200
+
+@app.route("/api/v1/friend-requests/pending", methods=["GET"])
+@jwt_required()
+def get_pending_requests():
+    user_id = int(get_jwt_identity())
+    pending = Friend.query.filter_by(user_id2=user_id, status="pending").all()
+
+    requesters = User.query.filter(User.id.in_([f.user_id1 for f in pending])).all()
+
+    return jsonify([
+        {
+            "requestId": f.id,
+            "from": u.to_json()
+        } for f, u in zip(pending, requesters)
+    ])
+
+@app.route("/api/v1/friend-request/<int:request_id>", methods=["DELETE"])
+@jwt_required()
+def reject_or_cancel_friend_request(request_id):
+    user_id = int(get_jwt_identity())
+    friend_request = Friend.query.filter_by(id=request_id).first()
+
+    if not friend_request:
+        return jsonify({"error": "Friend request not found"}), 404
+
+    if user_id not in [friend_request.user_id1, friend_request.user_id2]:
+        return jsonify({"error": "Not sender or receiver"}), 403
+
+    db.session.delete(friend_request)
+    db.session.commit()
+    return jsonify({"message": "Friend request deleted"}), 200
