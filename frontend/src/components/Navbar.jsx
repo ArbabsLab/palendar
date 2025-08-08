@@ -48,19 +48,6 @@ const Navbar = ({ setUsers }) => {
   }, []);
 
 
-  const fetchFriends = async (token) => {
-    try {
-      const res = await fetch(`${BASE_URL}/friends`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to fetch contacts");
-      const data = await res.json();
-      setUsers(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   const handleLogout = () => {
     localStorage.removeItem("token");
     setIsLoggedIn(false);

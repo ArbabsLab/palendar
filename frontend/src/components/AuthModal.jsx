@@ -88,6 +88,8 @@ const AuthModal = () => {
           gender: "",
           img_url: "",
         });
+
+        window.location.reload();
       }
     } catch (err) {
       toast({

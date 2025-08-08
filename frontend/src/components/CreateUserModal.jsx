@@ -65,6 +65,7 @@ const AddFriendModal = ({ setUsers }) => {
 
 			
 			setUsers((prev) => [...prev]); 
+			window.location.reload();
 
 		} catch (error) {
 			toast({
