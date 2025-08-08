@@ -38,15 +38,23 @@ const AddFriendModal = ({ setUsers }) => {
 			setIsLoading(false);
 			return;
 		}
+		if (!friendId || isNaN(friendId) || parseInt(friendId) <= 0) {
+			toast({
+				status: "error",
+				title: "Invalid Friend ID",
+				description: "Please enter a valid user ID.",
+			});
+			setIsLoading(false);
+			return;
+		}
 
 		try {
-			const res = await fetch(`${BASE_URL}/friends`, {
+			const res = await fetch(`${BASE_URL}/friend-request/${friendId}`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 					Authorization: `Bearer ${token}`,
 				},
-				body: JSON.stringify({ friend_id: parseInt(friendId) }),
 			});
 
 			const data = await res.json();
@@ -54,18 +62,18 @@ const AddFriendModal = ({ setUsers }) => {
 
 			toast({
 				status: "success",
-				title: "Friend Added",
+				title: "Friend Request Sent",
 				description: data.message || "Friend added successfully.",
 				duration: 2000,
 				position: "top",
 			});
 
-			onClose();
 			setFriendId("");
+			onClose();
+			
 
 			
 			setUsers((prev) => [...prev]); 
-			window.location.reload();
 
 		} catch (error) {
 			toast({
@@ -89,7 +97,7 @@ const AddFriendModal = ({ setUsers }) => {
 				<ModalOverlay />
 				<form onSubmit={handleAddFriend}>
 					<ModalContent>
-						<ModalHeader>Add a Friend</ModalHeader>
+						<ModalHeader>Send Friend Request</ModalHeader>
 						<ModalCloseButton />
 
 						<ModalBody pb={6}>
@@ -107,7 +115,7 @@ const AddFriendModal = ({ setUsers }) => {
 
 						<ModalFooter>
 							<Button colorScheme="blue" mr={3} type="submit" isLoading={isLoading}>
-								Add
+								Send
 							</Button>
 							<Button onClick={onClose}>Cancel</Button>
 						</ModalFooter>

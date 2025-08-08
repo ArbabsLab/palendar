@@ -73,7 +73,8 @@ def all_friends():
          print(e)
          return jsonify({"error": str(e)}), 500
     
-    
+"""
+NO LONGER IN USE
 #Add a friend
 @app.route("/api/v1/friends", methods=["POST"])
 @jwt_required()
@@ -109,6 +110,7 @@ def create_friend():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+"""   
 
 #Delete a friend
 @app.route("/api/v1/friends/<int:id>", methods=["DELETE"])
@@ -139,6 +141,10 @@ def send_friend_request(receiver_id):
     if sender_id == receiver_id:
         return jsonify({"error": "You can't send a request to yourself"}), 400
 
+    friend_exists = User.query.filter_by(id=receiver_id).first()
+    if not friend_exists:
+        return jsonify({"error": "User does not exist"}), 404
+        
     existing_request = Friend.query.filter(
         ((Friend.user_id1 == sender_id) & (Friend.user_id2 == receiver_id)) |
         ((Friend.user_id1 == receiver_id) & (Friend.user_id2 == sender_id))

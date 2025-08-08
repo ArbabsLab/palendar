@@ -26,6 +26,7 @@ import { useState, useEffect } from "react";
 import CreateUserModal from "./CreateUserModal";
 import { BASE_URL } from "../App";  // <-- here
 import AuthModal from "./AuthModal";
+import FriendRequestModal from "./FriendRequestModal";
 
 const Navbar = ({ setUsers }) => {
   const { colorMode, toggleColorMode } = useColorMode();
@@ -98,6 +99,7 @@ const Navbar = ({ setUsers }) => {
                 Logout
               </Button>
               <CreateUserModal setUsers={setUsers} />
+              <FriendRequestModal />
               </>
             )}
           </Flex>

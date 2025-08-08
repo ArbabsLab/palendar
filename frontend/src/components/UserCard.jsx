@@ -104,17 +104,7 @@ const UserCard = ({ user, setUsers }) => {
           </Flex>
         </CardHeader>
 
-        <CardBody pt={0}>
-          <Text
-            fontSize="sm"
-            color={textColor}
-            transition="opacity 0.2s ease-in-out"
-            opacity={0}
-            _groupHover={{ opacity: 1 }}
-          >
-            {user.description}
-          </Text>
-        </CardBody>
+        
       </Card>
     </Box>
   );
