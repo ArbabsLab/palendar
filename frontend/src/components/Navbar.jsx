@@ -7,24 +7,13 @@ import {
   useColorMode,
   useColorModeValue,
   useDisclosure,
-  Input,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-  FormControl,
-  FormLabel,
   useToast,
-  Link,
 } from "@chakra-ui/react";
 import { IoMoon } from "react-icons/io5";
 import { LuSun, LuCalendar } from "react-icons/lu";
 import { useState, useEffect } from "react";
+import { Link as RouterLink } from "react-router-dom";
 import CreateUserModal from "./CreateUserModal";
-import { BASE_URL } from "../App";  // <-- here
 import AuthModal from "./AuthModal";
 import FriendRequestModal from "./FriendRequestModal";
 
@@ -50,7 +39,7 @@ const Navbar = ({ setUsers }) => {
 
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    localStorage.removeItem("access_token");
     setIsLoggedIn(false);
     setUsers([]);
     toast({
@@ -86,6 +75,19 @@ const Navbar = ({ setUsers }) => {
             >
               {colorMode === "light" ? <IoMoon size={18} /> : <LuSun size={18} />}
             </Button>
+
+            {/* Calendar Link */}
+            <Button
+              variant="outline"
+              colorScheme="blue"
+              size="sm"
+              onClick={() => {
+                window.location.href = "/calendar";
+              }}
+            >
+              Calendar
+            </Button>
+
             
 
             {!isLoggedIn ? (
@@ -95,11 +97,12 @@ const Navbar = ({ setUsers }) => {
               
             ) : (
               <>
+              <CreateUserModal setUsers={setUsers} />
+              <FriendRequestModal />
               <Button size="sm" onClick={handleLogout} colorScheme="red">
                 Logout
               </Button>
-              <CreateUserModal setUsers={setUsers} />
-              <FriendRequestModal />
+              
               </>
             )}
           </Flex>

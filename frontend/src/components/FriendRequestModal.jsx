@@ -94,8 +94,8 @@ const FriendRequestModal = ({ setUsers }) => {
 
 	return (
 		<>
-			<Button onClick={onOpen} leftIcon={<FaUserFriends />}>
-				View Friend Requests
+			<Button onClick={onOpen}>
+				<FaUserFriends />
 			</Button>
 
 			<Modal isOpen={isOpen} onClose={onClose}>

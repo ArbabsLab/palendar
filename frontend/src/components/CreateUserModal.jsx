@@ -89,8 +89,8 @@ const AddFriendModal = ({ setUsers }) => {
 
 	return (
 		<>
-			<Button onClick={onOpen} leftIcon={<BiUserPlus />}>
-				Add Friend
+			<Button onClick={onOpen}>
+				<BiUserPlus></BiUserPlus>
 			</Button>
 
 			<Modal isOpen={isOpen} onClose={onClose}>

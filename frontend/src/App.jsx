@@ -2,6 +2,8 @@ import { Container, Stack, Text, Box, useColorModeValue } from "@chakra-ui/react
 import Navbar from "./components/Navbar";
 import UserGrid from "./components/UserGrid";
 import { useState } from "react";
+import SharedCalendar from "./components/SharedCalendar";
+import { Routes, Route } from "react-router-dom";
 
 export const BASE_URL =
 	import.meta.env.MODE === "development"
@@ -9,37 +11,44 @@ export const BASE_URL =
 		: "/api/v1";
 
 function App() {
-	const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState([]);
 
-	
-	const bgColor = useColorModeValue("#f0f4f8", "#1a202c"); // light bluish-gray / dark navy
-	const textColor = useColorModeValue("#1a365d", "#e3f2fd"); // deep blue / soft blue
-	const subTextColor = useColorModeValue("#4a5568", "#cbd5e0"); // slate gray / soft gray-blue
+  const bgColor = useColorModeValue("#f0f4f8", "#1a202c");
+  const textColor = useColorModeValue("#1a365d", "#e3f2fd");
+  const subTextColor = useColorModeValue("#4a5568", "#cbd5e0");
 
-	return (
-		<Stack minH="100vh" spacing={0} bg={bgColor}>
-			<Navbar setUsers={setUsers} />
+  return (
+    <Stack minH="100vh" spacing={0} bg={bgColor}>
+      <Navbar setUsers={setUsers} />
 
-			<Container maxW="6xl" py={10}>
-				<Box textAlign="center" mb={10}>
-					<Text
-						fontSize={{ base: "3xl", md: "5xl" }}
-						fontWeight="bold"
-						letterSpacing="wide"
-						textTransform="uppercase"
-						color={textColor}
-					>
-						Contacts
-					</Text>
-					<Text fontSize="md" color={subTextColor} mt={2}>
-						View, manage, and connect with your contacts
-					</Text>
-				</Box>
-
-				<UserGrid users={users} setUsers={setUsers} />
-			</Container>
-		</Stack>
-	);
+      <Container maxW="6xl" py={10}>
+        <Routes>
+          <Route path="/" element={
+            <>
+              <Box textAlign="center" mb={10}>
+                <Text
+                  fontSize={{ base: "3xl", md: "5xl" }}
+                  fontWeight="bold"
+                  letterSpacing="wide"
+                  textTransform="uppercase"
+                  color={textColor}
+                >
+                  Contacts
+                </Text>
+                <Text fontSize="md" color={subTextColor} mt={2}>
+                  View, manage, and connect with your contacts
+                </Text>
+              </Box>
+              <UserGrid users={users} setUsers={setUsers} />
+            </>
+          } />
+          <Route path="/calendar" element={<SharedCalendar />} />
+          
+        </Routes>
+      </Container>
+    </Stack>
+  );
 }
+
 
 export default App;
