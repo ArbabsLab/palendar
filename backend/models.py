@@ -1,5 +1,6 @@
 from app import db
 from flask_bcrypt import generate_password_hash, check_password_hash
+from datetime import datetime
 
 class User(db.Model):
     __tablename__ = "user"
@@ -67,3 +68,4 @@ class Friend(db.Model):
             "userId2": self.user_id2,
             "status": self.status
         }
+
