@@ -248,7 +248,7 @@ def invite_to_event(event_id):
 @jwt_required()
 def get_events():
     user_id = get_jwt_identity()
-    now = datetime.utcnow()
+    now = datetime.now()
 
     created_events = Event.query.filter_by(creator_id=user_id).filter(Event.date >= now).all()
     invited_events = (

@@ -76,7 +76,7 @@ class Event(db.Model):
     description = db.Column(db.Text)
     creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     date = db.Column(db.DateTime, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utc)
+    created_at = db.Column(db.DateTime, default=datetime.now())
 
     invites = db.relationship("EventInvite", backref="event", cascade="all, delete-orphan")
 
