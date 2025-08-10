@@ -69,3 +69,21 @@ class Friend(db.Model):
             "status": self.status
         }
 
+class Event(db.Model):
+    __tablename__ = "event"
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text)
+    creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    date = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utc)
+
+    invites = db.relationship("EventInvite", backref="event", cascade="all, delete-orphan")
+
+
+class EventInvite(db.Model):
+    __tablename__ = "event_invite"
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=False)
+    invitee_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    status = db.Column(db.String(20), default="pending")

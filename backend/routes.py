@@ -1,6 +1,7 @@
+from datetime import datetime
 from app import app, db
 from flask import request, jsonify
-from models import Friend, User
+from models import Event, EventInvite, Friend, User
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, get_jwt
 from flask_bcrypt import generate_password_hash, check_password_hash
 
@@ -136,28 +137,31 @@ def delete_friend(id):
 @app.route("/api/v1/friend-request/<int:receiver_id>", methods=["POST"])
 @jwt_required()
 def send_friend_request(receiver_id):
-    sender_id = int(get_jwt_identity())
+    try:
+        sender_id = int(get_jwt_identity())
 
-    if sender_id == receiver_id:
-        return jsonify({"error": "You can't send a request to yourself"}), 400
+        if sender_id == receiver_id:
+            return jsonify({"error": "You can't send a request to yourself"}), 400
 
-    friend_exists = User.query.filter_by(id=receiver_id).first()
-    if not friend_exists:
-        return jsonify({"error": "User does not exist"}), 404
-        
-    existing_request = Friend.query.filter(
-        ((Friend.user_id1 == sender_id) & (Friend.user_id2 == receiver_id)) |
-        ((Friend.user_id1 == receiver_id) & (Friend.user_id2 == sender_id))
-    ).first()
+        friend_exists = User.query.filter_by(id=receiver_id).first()
+        if not friend_exists:
+            return jsonify({"error": "User does not exist"}), 404
+            
+        existing_request = Friend.query.filter(
+            ((Friend.user_id1 == sender_id) & (Friend.user_id2 == receiver_id)) |
+            ((Friend.user_id1 == receiver_id) & (Friend.user_id2 == sender_id))
+        ).first()
 
-    if existing_request:
-        return jsonify({"error": "Friend request or friendship already exists"}), 400
+        if existing_request:
+            return jsonify({"error": "Friend request or friendship already exists"}), 400
 
-    friend_request = Friend(user_id1=sender_id, user_id2=receiver_id, status="pending")
-    db.session.add(friend_request)
-    db.session.commit()
-    return jsonify({"message": "Friend request sent"}), 201
-
+        friend_request = Friend(user_id1=sender_id, user_id2=receiver_id, status="pending")
+        db.session.add(friend_request)
+        db.session.commit()
+        return jsonify({"message": "Friend request sent"}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 @app.route("/api/v1/friend-request/<int:request_id>/accept", methods=["PUT"])
 @jwt_required()
 def accept_friend_request(request_id):
@@ -201,3 +205,75 @@ def reject_or_cancel_friend_request(request_id):
     db.session.delete(friend_request)
     db.session.commit()
     return jsonify({"message": "Friend request deleted"}), 200
+
+@app.route("/api/v1/events", methods=["POST"])
+@jwt_required()
+def create_event():
+    try:
+        data = request.json
+        user_id = get_jwt_identity()
+
+        event = Event(
+            title=data["title"],
+            description=data.get("description"),
+            creator_id=user_id,
+            date=datetime.strptime(data["date"], "%Y-%m-%d %H:%M")
+        )
+        db.session.add(event)
+        db.session.commit()
+
+        return jsonify({"message": "Event created", "event_id": event.id}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/v1/events/<int:event_id>/invite", methods=["POST"])
+@jwt_required()
+def invite_to_event(event_id):
+    try:
+        data = request.json
+        invitee_ids = data.get("invitees", [])
+
+        for invitee_id in invitee_ids:
+            invite = EventInvite(event_id=event_id, invitee_id=invitee_id)
+            db.session.add(invite)
+
+        db.session.commit()
+        return jsonify({"message": "Invites sent"})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/v1/events", methods=["GET"])
+@jwt_required()
+def get_events():
+    user_id = get_jwt_identity()
+    now = datetime.utcnow()
+
+    created_events = Event.query.filter_by(creator_id=user_id).filter(Event.date >= now).all()
+    invited_events = (
+        db.session.query(Event)
+        .join(EventInvite)
+        .filter(EventInvite.invitee_id == user_id, Event.date >= now)
+        .all()
+    )
+
+    events = [
+        {
+            "id": e.id,
+            "title": e.title,
+            "description": e.description,
+            "date": e.date.strftime("%Y-%m-%d %H:%M"),
+            "type": "created"
+        } for e in created_events
+    ] + [
+        {
+            "id": e.id,
+            "title": e.title,
+            "description": e.description,
+            "date": e.date.strftime("%Y-%m-%d %H:%M"),
+            "type": "invited"
+        } for e in invited_events
+    ]
+
+    return jsonify(events)
