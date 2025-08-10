@@ -55,6 +55,11 @@ const Navbar = ({ setUsers }) => {
       <Container maxW="6xl">
         <Flex align="center" justify="space-between" py={4} px={{ base: 2, md: 4 }}>
           <Flex align="center" gap={3}>
+            <Button
+              onClick={() => {
+                window.location.href = "/";
+              }}
+            >
             <LuCalendar size={28} color={textColor} />
             <Flex direction="column" display={{ base: "none", sm: "flex" }}>
               <Text fontSize="lg" fontWeight="bold" color={textColor}>
@@ -63,7 +68,9 @@ const Navbar = ({ setUsers }) => {
               <Text fontSize="sm" color={subTextColor}>
                 Schedule times with friends
               </Text>
+              
             </Flex>
+            </Button>
           </Flex>
 
           <Flex align="center" gap={3}>

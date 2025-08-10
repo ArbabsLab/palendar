@@ -2,8 +2,9 @@ import { Container, Stack, Text, Box, useColorModeValue } from "@chakra-ui/react
 import Navbar from "./components/Navbar";
 import UserGrid from "./components/UserGrid";
 import { useState } from "react";
-import SharedCalendar from "./components/SharedCalendar";
+import SharedCalendar from "./pages/SharedCalendar";
 import { Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
 
 export const BASE_URL =
 	import.meta.env.MODE === "development"
@@ -23,25 +24,7 @@ function App() {
 
       <Container maxW="6xl" py={10}>
         <Routes>
-          <Route path="/" element={
-            <>
-              <Box textAlign="center" mb={10}>
-                <Text
-                  fontSize={{ base: "3xl", md: "5xl" }}
-                  fontWeight="bold"
-                  letterSpacing="wide"
-                  textTransform="uppercase"
-                  color={textColor}
-                >
-                  Contacts
-                </Text>
-                <Text fontSize="md" color={subTextColor} mt={2}>
-                  View, manage, and connect with your contacts
-                </Text>
-              </Box>
-              <UserGrid users={users} setUsers={setUsers} />
-            </>
-          } />
+          <Route path="/" element={<Home />} />
           <Route path="/calendar" element={<SharedCalendar />} />
           
         </Routes>

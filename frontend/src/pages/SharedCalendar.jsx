@@ -5,7 +5,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { BASE_URL } from "../App";
 import { useDisclosure, useToast } from "@chakra-ui/react";
-import CreateEventModal from "./CreateEventModal";
+import CreateEventModal from "../components/CreateEventModal";
 
 const SharedCalendar = () => {
   const [events, setEvents] = useState([]);
