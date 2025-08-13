@@ -244,17 +244,64 @@ def invite_to_event(event_id):
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/v1/events/<int:event_id>", methods=["DELETE"])
+@jwt_required()
+def delete_events(event_id):
+    try:
+        user_id = int(get_jwt_identity())
+        event = Event.query.filter_by(id=event_id, creator_id=user_id).first()
+
+        if not event:
+            return jsonify({"error": "Event not found or not authorized"}), 404
+
+        db.session.delete(event)
+        db.session.commit()
+        return jsonify({"message": "Event deleted successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/v1/events/<int:event_id>", methods=["PUT"])
+@jwt_required()
+def edit_event(event_id):
+    try:
+        user_id = int(get_jwt_identity())
+        data = request.json
+
+        event = Event.query.filter_by(id=event_id, creator_id=user_id).first()
+
+        if not event:
+            return jsonify({"error": "Event not found or not authorized"}), 404
+
+        if "title" in data:
+            event.title = data["title"]
+        if "description" in data:
+            event.description = data["description"]
+        if "date" in data:
+            try:
+                event.date = datetime.strptime(data["date"], "%Y-%m-%d %H:%M")
+            except ValueError:
+                return jsonify({"error": "Invalid date format, use YYYY-MM-DD HH:MM"}), 400
+
+        db.session.commit()
+        return jsonify({"message": "Event updated successfully"}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/v1/events", methods=["GET"])
 @jwt_required()
 def get_events():
     user_id = get_jwt_identity()
-    now = datetime.now()
 
-    created_events = Event.query.filter_by(creator_id=user_id).filter(Event.date >= now).all()
+    created_events = Event.query.filter_by(creator_id=user_id).all()
     invited_events = (
         db.session.query(Event)
         .join(EventInvite)
-        .filter(EventInvite.invitee_id == user_id, Event.date >= now)
+        .filter(EventInvite.invitee_id == user_id)
         .all()
     )
 

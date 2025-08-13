@@ -6,10 +6,13 @@ import interactionPlugin from "@fullcalendar/interaction";
 import { BASE_URL } from "../App";
 import { useDisclosure, useToast } from "@chakra-ui/react";
 import CreateEventModal from "../components/CreateEventModal";
+import EventModal from "../components/EventModal";
 
 const SharedCalendar = () => {
   const [events, setEvents] = useState([]);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const { isOpen: isCreateOpen, onOpen: onCreateOpen, onClose: onCreateClose } = useDisclosure();
+  const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure();
   const toast = useToast();
 
   const fetchEvents = async () => {
@@ -24,6 +27,7 @@ const SharedCalendar = () => {
           id: e.id,
           title: e.title,
           start: e.date,
+          description: e.description,
           backgroundColor: e.type === "created" ? "#3182ce" : "#38a169"
         }))
       );
@@ -46,10 +50,16 @@ const SharedCalendar = () => {
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
         selectable
-        editable={false}
         events={events}
-        dateClick={(info) => {
-          onOpen();
+        dateClick={() => onCreateOpen()}
+        eventClick={(info) => {
+          setSelectedEvent({
+            id: info.event.id,
+            title: info.event.title,
+            description: info.event.extendedProps.description,
+            date: info.event.start
+          });
+          onEditOpen();
         }}
         headerToolbar={{
           left: "prev,next today",
@@ -58,7 +68,8 @@ const SharedCalendar = () => {
         }}
         height="90vh"
       />
-      <CreateEventModal isOpen={isOpen} onClose={onClose} refreshEvents={fetchEvents} />
+      <CreateEventModal isOpen={isCreateOpen} onClose={onCreateClose} refreshEvents={fetchEvents} />
+      <EventModal isOpen={isEditOpen} onClose={onEditClose} refreshEvents={fetchEvents} eventData={selectedEvent} />
     </>
   );
 };
