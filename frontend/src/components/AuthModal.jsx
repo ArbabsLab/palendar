@@ -89,8 +89,9 @@ const AuthModal = () => {
           img_url: "",
         });
 
-        window.location.reload();
+        
       }
+      window.location.reload();
     } catch (err) {
       toast({
         title: "Error",
@@ -102,6 +103,8 @@ const AuthModal = () => {
     } finally {
       setLoading(false);
     }
+
+    
   };
 
   return (

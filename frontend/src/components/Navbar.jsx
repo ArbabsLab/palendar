@@ -42,12 +42,7 @@ const Navbar = ({ setUsers }) => {
     localStorage.removeItem("access_token");
     setIsLoggedIn(false);
     setUsers([]);
-    toast({
-      title: "Logged out",
-      status: "info",
-      duration: 2000,
-      isClosable: true,
-    });
+    window.location.reload();
   };
 
   return (

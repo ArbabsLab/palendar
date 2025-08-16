@@ -1,0 +1,19 @@
+UI CHANGE:
+- Add personal user ID on the nav back (EASY)
+- Invite friend text is white on a white background (EASY)
+- Remove week and day from calendar (EASY)
+
+EVENT ISSUE:
+- Date selection on event creation form is wrong
+    - Cannot select time
+    - Wrong date is recorded
+
+- Can't invite people after event has been created
+
+
+
+
+
+
+DONE:
+- Refresh after Login, Signup, and Logout (EASY)
