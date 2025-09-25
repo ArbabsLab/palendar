@@ -12,6 +12,7 @@ Make scheduling outings with friends easier!
 
 - Tech Stack: Flask, React, SQLite, SQLAlchemy, Chakra UI
 - CRUD Functionality: Create, read, update, and delete friends and events from your contact book.
+- Authentication: JWT Tokens
 - Stay Organized: Use the calendar to organize your social/business life by adding events.
 - Stylish UI Components: Enhanced user experience with UI components provided by Chakra UI.
 - Theme Change: User interface experience with light and dark mode options.
