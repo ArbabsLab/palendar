@@ -4,10 +4,15 @@ Make scheduling outings with friends easier!
 
 ![Demo App](/frontend/public/read-me.png/)
 
+### Motivation
+
+- I find that I often overbook my week with meet-ups and plans. This site was designed to help me organize my and my friend's schedule.
+
 ### Table of Contents
 
 - Tech Stack: Flask, React, SQLite, SQLAlchemy, Chakra UI
-- CRUD Functionality: Seamlessly create, read, update, and delete friends from your store.
+- CRUD Functionality: Create, read, update, and delete friends and events from your contact book.
+- Stay Organized: Use the calendar to organize your social/business life by adding events.
 - Stylish UI Components: Enhanced user experience with UI components provided by Chakra UI.
 - Theme Change: User interface experience with light and dark mode options.
 - Responsive Design: Designed to adapt to various screen sizes.
